@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PHANTOM TERMINAL | THE WORKERS</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+
+        body {
+            background-color: #000;
+            background-image: radial-gradient(#e60012 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            color: white;
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Lado Izquierdo Estilo P5 */
+        .sidebar {
+            width: 300px;
+            background: #e60012;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform: skewX(-10deg) translateX(-20px);
+            box-shadow: 10px 0 0 #fff, 20px 0 0 #000;
+            z-index: 10;
+        }
+
+        .sidebar h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            background: #000;
+            color: #fff;
+            padding: 10px 20px;
+            transform: rotate(-5deg);
+        }
+
+        /* Área de Chat */
+        .main-terminal {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            z-index: 5;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-right: 20px;
+        }
+
+        /* Burbujas de comando estilo Persona */
+        .msg {
+            padding: 15px 25px;
+            max-width: 80%;
+            position: relative;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: #fff;
+            color: #000;
+            transform: rotate(2deg) skewX(-10deg);
+            border-left: 8px solid #e60012;
+        }
+
+        .bot-msg {
+            align-self: flex-start;
+            background: #e60012;
+            color: #fff;
+            transform: rotate(-1deg) skewX(5deg);
+            border-right: 8px solid #fff;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: none;
+        }
+
+        /* Input Estilo Robusto */
+        .input-area {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            transform: skewX(-15deg);
+        }
+
+        input {
+            flex: 1;
+            background: #fff;
+            border: 4px solid #e60012;
+            padding: 15px;
+            font-size: 1.5rem;
+            font-family: 'Oswald', sans-serif;
+            outline: none;
+        }
+
+        button {
+            background: #000;
+            color: #fff;
+            border: 4px solid #fff;
+            padding: 0 30px;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #e60012;
+            transform: scale(1.1);
+        }
+
+        pre { margin: 0; white-space: pre-wrap; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>THE WORKERS</h1>
+        <p style="background:#fff; padding:5px; font-weight:bold;">PHANTOM LINK: ACTIVE</p>
+    </div>
+
+    <div class="main-terminal">
+        <div id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="cmd" placeholder="TICKET DE COMANDO..." onkeypress="handleKey(event)">
+            <button onclick="enviar()">EJECUTAR</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io("https://phantom-workers.onrender.com");
+        const msgBox = document.getElementById("messages");
+
+        socket.on("web_display", (data) => {
+            const div = document.createElement("div");
+            div.className = "msg bot-msg";
+            div.innerHTML = "<strong>[SYSTEM]:</strong><br><pre>" + data.output + "</pre>";
+            msgBox.appendChild(div);
+            msgBox.scrollTop = msgBox.scrollHeight;
+        });
+
+        function enviar() {
+            const cmdInput = document.getElementById("cmd");
+            const cmd = cmdInput.value.trim();
+            if (cmd === "") return;
+
+            const div = document.createElement("div");
+            div.className = "msg user-msg";
+            div.innerText = "> " + cmd;
+            msgBox.appendChild(div);
+
+            socket.emit("sio_message", { cmd: cmd });
+            cmdInput.value = "";
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter') enviar();
+        }
+    </script>
+</body>
+</html>
